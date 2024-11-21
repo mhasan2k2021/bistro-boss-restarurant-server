@@ -4,7 +4,12 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -30,13 +35,15 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     // this server database and collection here
 
     const bistroBoss = client.db("bistroBoss");
     const bistroProduct = bistroBoss.collection("bistroProduct");
     const cartItems = bistroBoss.collection("cartItems");
+    const imageLink = bistroBoss.collection("imageLink");
+    const topMenu = bistroBoss.collection("topMenu");
 
     app.get("/products/:category", async (req, res) => {
       const category = req.params.category;
@@ -45,6 +52,18 @@ async function run() {
       const result = products.filter(
         (product) => product.category === category
       );
+      res.send(result);
+    });
+
+    app.get("/image-link", async (req, res) => {
+      const data = await imageLink.find().toArray();
+      res.send(data);
+    });
+
+    app.get("/top-menu", async (req, res) => {
+      const data = topMenu.find();
+      const result = await data.toArray();
+      console.log(result);
       res.send(result);
     });
 
@@ -80,10 +99,10 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
